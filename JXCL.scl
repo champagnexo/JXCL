@@ -1,0 +1,151 @@
+// Made with love by the CristiMediaGroup team!
+
+CASE #State OF
+
+    0:  // IDLE
+        "PD_OUT_data - SVON"  := 0;
+        "PD_OUT_data - SETUP" := 0;
+        "PD_OUT_data - Run"   := 0;
+        "PD_OUT_data - RESET" := 0;
+        #Done := 0;
+        #Forward_Done := 0;
+        #Home_Done := 0;
+        #Delay_Counter := 0;
+
+        IF (#Motor_Plus OR #Motor_Plus_2)          // ← BEIDE KNOPPEN WERKEN
+            AND NOT "PD_IN_data - ALARM"
+            AND NOT "PD_IN_data - ESTOP" THEN
+            #State := 1;
+        END_IF;
+
+
+    1:  // SERVO ON
+        "PD_OUT_data - SVON" := 1;
+
+        IF "PD_IN_data - SVRE" THEN
+            #State := 2;
+        END_IF;
+
+
+    2:  // HOMING
+        IF NOT "PD_IN_data - SETON" THEN
+            "PD_OUT_data - SETUP" := 1;
+        ELSE
+            "PD_OUT_data - SETUP" := 0;
+            #State := 10;
+        END_IF;
+
+
+    10: // PARAMETERS — NAAR VOORWAARTS (20000)
+        "PD_OUT_data - Run"        := 0;
+        "PD_OUT_data - Move"       := 1;
+        "PD_OUT_data - Speed"      := 100;
+        "PD_OUT_data - Target Pos" := 20000;
+        "PD_OUT_data - Accel"      := 30;
+        "PD_OUT_data - Decel"      := 30;
+        "PD_OUT_data - PushingF"   := 0;
+        "PD_OUT_data - TriggerLv"  := 0;
+        "PD_OUT_data - InPosition" := 10;
+
+        #State := 11;
+
+
+    11: // LATCH
+        #State := 12;
+
+
+    12: // START VOORWAARTS
+        "PD_OUT_data - Run" := 1;
+        #State := 13;
+
+
+    13: // RUN UIT NA BUSY
+        IF "PD_IN_data - BUSY" THEN
+            "PD_OUT_data - Run" := 0;
+            #State := 14;
+        END_IF;
+
+
+    14: // WACHT TOT POSITIE BEREIKT
+        IF "PD_IN_data - INP" AND NOT "PD_IN_data - BUSY" THEN
+            #Forward_Done := 1;
+            #State := 15;
+        END_IF;
+
+
+    15: // 3 SECONDEN DELAY
+        #Delay_Counter := #Delay_Counter + 1;
+
+        IF #Delay_Counter >= 30 THEN
+            #Delay_Counter := 0;
+            #State := 20;
+        END_IF;
+
+
+    20: // PARAMETERS — NAAR HOME (0)
+        "PD_OUT_data - Run"        := 0;
+        "PD_OUT_data - Move"       := 1;
+        "PD_OUT_data - Speed"      := 100;
+        "PD_OUT_data - Target Pos" := 0;
+        "PD_OUT_data - Accel"      := 30;
+        "PD_OUT_data - Decel"      := 30;
+        "PD_OUT_data - PushingF"   := 0;
+        "PD_OUT_data - TriggerLv"  := 0;
+        "PD_OUT_data - InPosition" := 10;
+
+        #State := 21;
+
+
+    21: // LATCH
+        #State := 22;
+
+
+    22: // START TERUG
+        "PD_OUT_data - Run" := 1;
+        #State := 23;
+
+
+    23: // RUN UIT NA BUSY
+        IF "PD_IN_data - BUSY" THEN
+            "PD_OUT_data - Run" := 0;
+            #State := 24;
+        END_IF;
+
+
+    24: // WACHT TOT HOME BEREIKT
+        IF "PD_IN_data - INP" AND NOT "PD_IN_data - BUSY" THEN
+            #Home_Done := 1;
+            #State := 30;
+        END_IF;
+
+
+    30: // DONE — WACHT TOT BEIDE KNOPPEN LAAG
+        #Done := 1;
+
+        IF NOT #Motor_Plus AND NOT #Motor_Plus_2 THEN   // ← BEIDE MOETEN LAAG ZIJN
+            #State := 0;
+        END_IF;
+
+
+    99: // ERROR
+        "PD_OUT_data - SVON"  := 0;
+        "PD_OUT_data - SETUP" := 0;
+        "PD_OUT_data - Run"   := 0;
+        #Delay_Counter := 0;
+
+        IF #Reset_Cmd THEN
+            "PD_OUT_data - RESET" := 1;
+        ELSE
+            "PD_OUT_data - RESET" := 0;
+        END_IF;
+
+        IF NOT "PD_IN_data - ALARM" THEN
+            "PD_OUT_data - RESET" := 0;
+            #State := 0;
+        END_IF;
+
+
+    ELSE
+        #State := 0;
+
+END_CASE;
