@@ -1,16 +1,16 @@
 # SMC JXCL Electric Actuator Controller
 
-Made with love by the **CristiMediaGroup** team!  
+Made with love by the **CristiMediaGroup** team!
 Fixed and enhanced by Claude.
 
 ## Overview
 
 This Siemens TIA Portal project controls an **SMC JXCL18-LEL25MT-300** electric actuator via IO-Link. The actuator performs an automatic cycle:
 
-1. **Homing** — establishes origin position
-2. **Forward movement** — moves to target position (200.00 mm)
-3. **3-second delay** — waits at target position
-4. **Return to home** — moves back to origin (0 mm)
+1. Homing - establishes origin position
+2. Forward movement - moves to target position (200.00 mm)
+3. 3-second delay - waits at target position
+4. Return to home - moves back to origin (0 mm)
 
 ## Hardware
 
@@ -38,7 +38,7 @@ This Siemens TIA Portal project controls an **SMC JXCL18-LEL25MT-300** electric 
 | Name | Type | Source | Description |
 |------|------|--------|-------------|
 | `Motor_Plus` | Bool | `%DB3.DBX1.3` `"S".S7` | Start command (HMI/Method 1) |
-| `Motor_Plus_2` | Bool | — | Start command (Method 2) |
+| `Motor_Plus_2` | Bool | - | Start command (Method 2) |
 | `Reset_Cmd` | Bool | `%DB5.DBX0.6` `"HM".Reset JXCLHM` | Alarm reset |
 
 ### Outputs
@@ -80,11 +80,11 @@ This Siemens TIA Portal project controls an **SMC JXCL18-LEL25MT-300** electric 
 
 ## Key Features
 
-- **Dual start methods**: Two independent start inputs (`Motor_Plus` OR `Motor_Plus_2`)
-- **Automatic cycle**: Forward → Delay → Home without intervention
-- **Safe RUN pulse**: RUN bit cleared immediately after BUSY rises (per SMC manual)
-- **Alarm reset**: Manual reset via `Reset_Cmd` input
-- **ESTOP/ALARM protection**: Cycle blocked if safety signals active
+- Dual start methods: Two independent start inputs (`Motor_Plus` OR `Motor_Plus_2`)
+- Automatic cycle: Forward -&gt; Delay -&gt; Home without intervention
+- Safe RUN pulse: RUN bit cleared immediately after BUSY rises (per SMC manual)
+- Alarm reset: Manual reset via `Reset_Cmd` input
+- ESTOP/ALARM protection: Cycle blocked if safety signals active
 
 ## Process Data Mapping
 
@@ -145,12 +145,9 @@ This Siemens TIA Portal project controls an **SMC JXCL18-LEL25MT-300** electric 
 | Symptom | Cause | Solution |
 |---------|-------|----------|
 | No movement | `Move = 0` invalid | Check `Move = 1` (ABS) |
-| Alarm on start | Target out of range | Verify `Target Pos` ≤ 30000 |
+| Alarm on start | Target out of range | Verify `Target Pos` &lt;= 30000 |
 | RUN ignored | Parameters changing while RUN high | Ensure RUN cleared when BUSY rises |
-| Stuck in State 3 | Waiting for SETON low | SETON stays HIGH — remove State 3 |
+| Stuck in State 3 | Waiting for SETON low | SETON stays HIGH - remove State 3 |
 | Timer errors | `IEC_TIMER` incompatible | Use scan counter method |
 
-## License
-
 Made with ❤️ by CristiMediaGroup
-APACHE LICENSE 2.0
