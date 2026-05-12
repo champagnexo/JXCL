@@ -1,7 +1,6 @@
 # SMC JXCL Electric Actuator Controller
 
 Made with love by the **CristiMediaGroup** team!
-Fixed and enhanced by Claude.
 
 ## Overview
 
